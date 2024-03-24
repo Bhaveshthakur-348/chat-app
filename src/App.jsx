@@ -144,11 +144,12 @@ const App = () => {
               date: new Date().toLocaleString(),
             },
           ],
+          replyVisible: false,
         };
       }
       return comment;
     });
-
+  
     // Update state and Firebase with the new reply
     setCommentsAndUpdateDatabase(updatedComments);
   };
