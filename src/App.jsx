@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { getDatabase, ref, push, onValue, set } from "firebase/database";
 import database from "./firebaseConfig";
 import { RiDeleteBin5Line } from "react-icons/ri";
+import toast, { Toaster } from "react-hot-toast";
 
 const App = () => {
   const [comments, setComments] = useState([]);
@@ -70,6 +71,11 @@ const App = () => {
     e.preventDefault();
     const name = e.target.elements.name.value;
     const commentText = e.target.elements.comment.value;
+
+    if (!name || !commentText) {
+      return toast.error("Please Provide Both Name and Comment!")
+    }
+
     const date = new Date().toLocaleString();
 
     const newComment = {
@@ -94,10 +100,17 @@ const App = () => {
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    const options = { month: 'short', day: 'numeric', year: 'numeric' };
-    const formattedDate = date.toLocaleDateString('en-US', options);
+    const options = { month: "short", day: "numeric", year: "numeric" };
+    const formattedDate = date.toLocaleDateString("en-US", options);
     const day = date.getDate();
-    const suffix = day % 10 === 1 && day !== 11 ? 'st' : (day % 10 === 2 && day !== 12 ? 'nd' : (day % 10 === 3 && day !== 13 ? 'rd' : 'th'));
+    const suffix =
+      day % 10 === 1 && day !== 11
+        ? "st"
+        : day % 10 === 2 && day !== 12
+        ? "nd"
+        : day % 10 === 3 && day !== 13
+        ? "rd"
+        : "th";
     return formattedDate.replace(/\b\d{1,2}\b/, day + suffix);
   };
 
@@ -131,6 +144,12 @@ const App = () => {
   };
 
   const handleReply = (commentId, replyText, replyName) => {
+    if(!replyName || !replyText){
+      return toast.error("Please Provide Both Name and Reply!", {
+        position: "bottom-center",
+      })
+    }
+
     const updatedComments = comments.map((comment) => {
       if (comment.id === commentId) {
         return {
@@ -149,7 +168,7 @@ const App = () => {
       }
       return comment;
     });
-  
+
     // Update state and Firebase with the new reply
     setCommentsAndUpdateDatabase(updatedComments);
   };
@@ -304,6 +323,7 @@ const App = () => {
             Post
           </button>
         </form>
+          <Toaster />
       </div>
 
       <div className="sm: w-[400px] lg:w-[500px] p-2  rounded-md">
