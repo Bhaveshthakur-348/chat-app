@@ -291,11 +291,11 @@ const App = () => {
             className="w-full rounded-md p-2 mb-4"
             placeholder="Name"
           />
-          <input
-            type="text"
+          <textarea
             name="comment"
             className="w-full rounded-md p-2 mb-4"
             placeholder="Comment"
+            rows={2}
           />
           <button
             type="submit"
