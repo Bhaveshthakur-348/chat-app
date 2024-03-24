@@ -92,6 +92,15 @@ const App = () => {
     e.target.reset();
   };
 
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const options = { month: 'short', day: 'numeric', year: 'numeric' };
+    const formattedDate = date.toLocaleDateString('en-US', options);
+    const day = date.getDate();
+    const suffix = day % 10 === 1 && day !== 11 ? 'st' : (day % 10 === 2 && day !== 12 ? 'nd' : (day % 10 === 3 && day !== 13 ? 'rd' : 'th'));
+    return formattedDate.replace(/\b\d{1,2}\b/, day + suffix);
+  };
+
   const handleReplyToggle = (commentId) => {
     const updatedComments = comments.map((comment) => {
       if (comment.id === commentId) {
@@ -316,7 +325,7 @@ const App = () => {
               <div className="bg-gray-100 border border-1 p-4 rounded-md relative">
                 <div className="font-semibold flex justify-between mb-[2px]">
                   <p>{comment.name}</p>
-                  <p>{comment.date}</p>
+                  <p>{formatDate(comment.date)}</p>
                 </div>
                 <p className="mb-[2px]">{comment.comment}</p>
                 <button
@@ -386,7 +395,7 @@ const App = () => {
                   >
                     <div className="font-semibold flex justify-between mb-[2px]">
                       <p>{reply.name}</p>
-                      <p> {reply.date}</p>
+                      <p>{formatDate(reply.date)}</p>
                     </div>
                     <p className="mb-[2px]">{reply.reply}</p>
                     <button
@@ -435,7 +444,7 @@ const App = () => {
           <div className="bg-white p-6 rounded-md w-[400px]">
             <p>{editingType === "comment" ? "Edit Comment" : "Edit Reply"}</p>
             <textarea
-              ref={textareaRef} 
+              ref={textareaRef}
               className="w-full rounded-md p-2 mt-2"
               value={
                 editingType === "comment" ? editedCommentText : editedReplyText
