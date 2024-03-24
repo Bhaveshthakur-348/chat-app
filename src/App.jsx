@@ -317,7 +317,7 @@ const App = () => {
         {comments === null ? (
           <p>Loading...</p>
         ) : comments.length === 0 ? (
-          <p>No comments found</p>
+          <p className="text-center">No comments found</p>
         ) : (
           comments.map((comment) => (
             <div key={comment.id} className="mt-2">
