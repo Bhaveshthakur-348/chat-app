@@ -1,8 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
 import { getDatabase, ref, push, onValue, set } from "firebase/database";
 import database from "./firebaseConfig";
-import { RiDeleteBin5Line } from "react-icons/ri";
 import toast, { Toaster } from "react-hot-toast";
+import CommentForm from "./components/CommentForm";
+import Comment from "./components/Comment";
+import DeleteModal from "./components/DeleteModal";
+import EditModal from "./components/EditModal";
 
 const App = () => {
   const [comments, setComments] = useState([]);
@@ -301,32 +304,9 @@ const App = () => {
 
   return (
     <div className="flex flex-col items-center mt-8">
-      <div className="bg-gray-100 p-4 rounded-md mb-4 border border-1">
-        <form onSubmit={handleSubmit}>
-          <p className="text-lg mb-1 font-semibold">Comment</p>
-          <input
-            type="text"
-            name="name"
-            className="w-full rounded-md p-2 mb-4"
-            placeholder="Name"
-          />
-          <textarea
-            name="comment"
-            className="w-full rounded-md p-2 mb-4"
-            placeholder="Comment"
-            rows={2}
-          />
-          <button
-            type="submit"
-            className="bg-blue-400 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded float-right"
-          >
-            Post
-          </button>
-        </form>
-          <Toaster />
-      </div>
-
-      <div className="sm: w-[400px] lg:w-[500px] p-2  rounded-md">
+      <CommentForm onSubmit={handleSubmit} />
+      <div className="sm: w-[370px] lg:w-[500px] p-2 rounded-md">
+        {/* Sort order toggle */}
         {comments.length >= 1 && (
           <p className="text-right mb-1 font-semibold">
             Sort By:{" "}
@@ -335,168 +315,57 @@ const App = () => {
             </span>
           </p>
         )}
+        {/* Comments list */}
         {comments === null ? (
           <p>Loading...</p>
         ) : comments.length === 0 ? (
           <p className="text-center">No comments found</p>
         ) : (
           comments.map((comment) => (
-            <div key={comment.id} className="mt-2">
-              {/* Render comment content */}
-              <div className="bg-gray-100 border border-1 p-4 rounded-md relative">
-                <div className="font-semibold flex justify-between mb-[2px]">
-                  <p>{comment.name}</p>
-                  <p>{formatDate(comment.date)}</p>
-                </div>
-                <p className="mb-[2px]">{comment.comment}</p>
-                <button
-                  className="p-1 absolute top-1/2 -translate-y-1/2 right-[-11px] rounded-full bg-gray-800"
-                  onClick={() => handleDelete(comment.id, null)}
-                >
-                  <RiDeleteBin5Line className="text-white h-5 w-5" />
-                </button>
-                <div className="flex justify-start">
-                  <button
-                    className="text-blue-500 font-semibold mr-3"
-                    onClick={() => handleReplyToggle(comment.id)}
-                  >
-                    Reply
-                  </button>
-                  <button
-                    className="text-blue-500 font-semibold"
-                    onClick={() => handleEdit("comment", comment.id)}
-                  >
-                    Edit
-                  </button>
-                </div>
-              </div>
-
-              {/* Reply form */}
-              {comment.replyVisible && (
-                <form
-                  className="ml-6 p-4 bg-gray-100 mt-2 rounded-md border border-1 flex flex-col"
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    const replyName = e.target.elements.replyName.value;
-                    const replyText = e.target.elements.replyText.value;
-                    handleReply(comment.id, replyText, replyName);
-                    e.target.reset();
-                  }}
-                >
-                  <h1>Reply</h1>
-                  <input
-                    type="text"
-                    name="replyName"
-                    className="w-full rounded-md p-2 mt-2"
-                    placeholder="Name"
-                  />
-                  <input
-                    type="text"
-                    name="replyText"
-                    className="w-full rounded-md p-2 mt-2"
-                    placeholder="Reply"
-                  />
-                  <button
-                    type="submit"
-                    className="bg-blue-400 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded mt-2 self-end"
-                  >
-                    Post
-                  </button>
-                </form>
-              )}
-
-              {/* Check if replies exist and if it's an array before mapping over it */}
-
-              {comment.replies &&
-                Array.isArray(comment.replies) &&
-                comment.replies.map((reply) => (
-                  <div
-                    key={reply.id}
-                    className="bg-gray-100 border border-1 p-4 rounded-md mt-4 ml-6 mb-3 relative"
-                  >
-                    <div className="font-semibold flex justify-between mb-[2px]">
-                      <p>{reply.name}</p>
-                      <p>{formatDate(reply.date)}</p>
-                    </div>
-                    <p className="mb-[2px]">{reply.reply}</p>
-                    <button
-                      className="text-blue-500 font-semibold"
-                      onClick={() => handleEdit("reply", comment.id, reply.id)}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      className="p-1 absolute top-1/2 -translate-y-1/2 right-[-11px] rounded-full bg-gray-800"
-                      onClick={() => handleDelete(comment.id, reply.id)}
-                    >
-                      <RiDeleteBin5Line className="text-white h-5 w-5" />
-                    </button>
-                  </div>
-                ))}
-            </div>
+            <Comment
+              key={comment.id}
+              comment={comment}
+              onDelete={handleDelete}
+              onEdit={handleEdit}
+              onReplyToggle={handleReplyToggle}
+              onReply={handleReply}
+              formatDate={formatDate}
+            />
           ))
         )}
       </div>
-
+      {/* Delete confirmation modal */}
       {showDeleteModal && (
-        <div className="fixed top-0 left-0 w-full h-full flex justify-center items-center bg-black bg-opacity-50">
-          <div className="bg-white p-6 rounded-md">
-            <p>Are you sure you want to delete?</p>
-            <div className="flex justify-end mt-4">
-              <button
-                className="bg-blue-400 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded mr-2"
-                onClick={confirmDelete}
-              >
-                Yes
-              </button>
-              <button
-                className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded"
-                onClick={cancelDelete}
-              >
-                No
-              </button>
-            </div>
-          </div>
-        </div>
+        <DeleteModal
+          onCancel={cancelDelete}
+          onConfirm={confirmDelete}
+        />
       )}
-
+      {/* Edit comment/reply modal */}
       {showEditModal && (
-        <div className="fixed top-0 left-0 w-full h-full flex justify-center items-center bg-black bg-opacity-50">
-          <div className="bg-white p-6 rounded-md w-[400px]">
-            <p>{editingType === "comment" ? "Edit Comment" : "Edit Reply"}</p>
-            <textarea
-              ref={textareaRef}
-              className="w-full rounded-md p-2 mt-2"
-              value={
-                editingType === "comment" ? editedCommentText : editedReplyText
-              }
-              onChange={(e) => {
-                if (editingType === "comment") {
-                  setEditedCommentText(e.target.value);
-                } else {
-                  setEditedReplyText(e.target.value);
-                }
-              }}
-            />
-            <div className="flex justify-end mt-4">
-              <button
-                className="bg-blue-400 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded mr-2"
-                onClick={confirmEdit}
-              >
-                Save
-              </button>
-              <button
-                className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded"
-                onClick={cancelEdit}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
+        <EditModal
+        editingType={editingType}
+        editedCommentId={editedCommentId}
+        editedReplyId={editedReplyId}
+        editedCommentText={editedCommentText}
+        editedReplyText={editedReplyText}
+          onTextChange={(type, value) => {
+            if (type === "comment") {
+              setEditedCommentText(value);
+            } else {
+              setEditedReplyText(value);
+            }
+          }}
+          confirmEdit={confirmEdit}
+          cancelEdit={cancelEdit}
+          textareaRef={textareaRef}
+        />
       )}
+      {/* Toast notifications */}
+      <Toaster />
     </div>
   );
+
 };
 
 export default App;
