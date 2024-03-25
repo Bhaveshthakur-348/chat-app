@@ -25,6 +25,7 @@ The app is built using React with Vite as the bundler.
 - firebase
 - react-icons
 - tailwind css
+- react-hot-toast
 
 ### Deployment
 The application is deployed on Vercel. You can access it [here](https://chat-app-omega-sepia.vercel.app/).
